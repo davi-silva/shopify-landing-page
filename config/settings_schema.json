@@ -2,7 +2,9 @@
   {
     "name": "theme_info",
     "theme_name": "Barebones Shopify Theme",
-    "theme_author": "Gemini CLI",
-    "theme_version": "1.0.0"
+    "theme_author": "Davi Silva",
+    "theme_version": "1.0.0",
+    "theme_support_email": "support@example.com",
+    "theme_documentation_url": "https://example.com/docs"
   }
 ]
