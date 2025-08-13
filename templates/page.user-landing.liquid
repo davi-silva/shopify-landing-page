@@ -1,0 +1,58 @@
+{% comment %}
+  This template is used for the dynamic user landing page.
+  It expects a user_id in the URL query parameters (e.g., /pages/user-landing?user_id=123).
+{% endcomment %}
+
+<div id="user-landing-page">
+  <h1>Welcome, <span id="user-first-name"></span>!</h1>
+  <img id="user-profile-image" src="" alt="User Profile Image" style="max-width: 200px; border-radius: 50%;">
+  <h2>Your Assigned Product:</h2>
+  <div id="assigned-product">
+    <p>Loading product details...</p>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('user_id');
+
+    if (!userId) {
+      document.getElementById('user-landing-page').innerHTML = '<p>User ID not found in URL. Please provide a user ID (e.g., ?user_id=123).</p>';
+      return;
+    }
+
+    // In a real scenario, this would be your Shopify App Proxy URL.
+    // Example: '/apps/my-custom-app/user-data?user_id=' + userId
+    // For this demonstration, we'll simulate the data.
+    const simulatedUserData = {
+      'user123': {
+        firstName: 'Alice',
+        profileImage: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Alice',
+        assignedProductId: 'gid://shopify/Product/8765432109876' // Example Shopify Product GID
+      },
+      'user456': {
+        firstName: 'Bob',
+        profileImage: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Bob',
+        assignedProductId: 'gid://shopify/Product/9876543210987' // Another example Product GID
+      }
+    };
+
+    const userData = simulatedUserData[userId];
+
+    if (userData) {
+      document.getElementById('user-first-name').textContent = userData.firstName;
+      document.getElementById('user-profile-image').src = userData.profileImage;
+
+      // Simulate fetching product details (in a real app, you might use Storefront API or link directly)
+      const assignedProductDiv = document.getElementById('assigned-product');
+      assignedProductDiv.innerHTML = `
+        <p>Product ID: ${userData.assignedProductId}</p>
+        <p>You would typically fetch product details here using Shopify's Storefront API or link to the product page.</p>
+        <a href="/products/${userData.assignedProductId.split('/').pop()}" target="_blank">View Product (Example Link)</a>
+      `;
+    } else {
+      document.getElementById('user-landing-page').innerHTML = '<p>User data not found for the provided ID.</p>';
+    }
+  });
+</script>

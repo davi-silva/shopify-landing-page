@@ -1,0 +1,7 @@
+{
+  "shopify": {
+    "general": {
+      "money_format": "${{amount}}"
+    }
+  }
+}
