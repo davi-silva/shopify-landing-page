@@ -1,4 +1,5 @@
 import "dotenv/config";
+import "@shopify/shopify-api/adapters/node";
 
 import { LATEST_API_VERSION, Session, shopifyApi } from "@shopify/shopify-api";
 import express, { Request, Response } from "express";
@@ -13,7 +14,7 @@ const SHOPIFY_ADMIN_ACCESS_TOKEN = process.env
 const SHOP_NAME = process.env.SHOP_NAME as string;
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5555;
 
 // Initialize the Shopify API client
 const shopify = shopifyApi({

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Landing Page Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    .page-width { max-width: 100%; }
+    .button {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+    #error-message { color: red; }
+    #user-info-container, #assigned-product-container, #loading-message {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="user-landing-page" class="page-width">
+    <div id="user-info-container" style="display: none;">
+      <h1>Welcome, <span id="user-first-name"></span>!</h1>
+      <img id="user-profile-image" src="" alt="User Profile Image" width="200px" height="200px" style="border-radius: 50%; margin: 10px auto;">
+    </div>
+
+    <div id="assigned-product-container" style="display: none;">
+      <h2>Your Assigned Product:</h2>
+      <div id="assigned-product">
+        <p>Loading product details...</p>
+      </div>
+    </div>
+
+    <div id="loading-message">
+      <p>Please provide a user_id in the URL (e.g., ?user_id=user123)</p>
+    </div>
+
+    <div id="error-message" style="display: none;"></div>
+  </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('user_id');
+
+    const loadingMessage = document.getElementById('loading-message');
+    const errorMessage = document.getElementById('error-message');
+    const userInfoContainer = document.getElementById('user-info-container');
+    const productContainer = document.getElementById('assigned-product-container');
+
+    // --- SIMULATED USER DATA ---
+    const simulatedUserData = {
+      'user123': {
+        firstName: 'Alice',
+        profileImage: 'https://via.placeholder.com/200/FF0000/FFFFFF?text=Alice',
+        assigned_product: {
+            title: 'The Classic Red T-Shirt',
+            vendor: 'Cool Tees',
+            url: '#',
+            image: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Product'
+        }
+      },
+      'user456': {
+        firstName: 'Bob',
+        profileImage: 'https://via.placeholder.com/200/0000FF/FFFFFF?text=Bob',
+        assigned_product: {
+            title: 'The Brilliant Blue Hat',
+            vendor: 'Rad Hats Inc.',
+            url: '#',
+            image: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Product'
+        }
+      }
+    };
+
+    if (!userId) {
+      // The default message in loadingMessage handles this.
+      return;
+    }
+
+    const userData = simulatedUserData[userId];
+
+    if (!userData) {
+      loadingMessage.style.display = 'none';
+      errorMessage.textContent = `User data not found for user_id: ${userId}`;
+      errorMessage.style.display = 'block';
+      return;
+    }
+
+    // --- Render User Info ---
+    document.getElementById('user-first-name').textContent = userData.firstName;
+    document.getElementById('user-profile-image').src = userData.profileImage;
+    document.getElementById('user-profile-image').alt = `${userData.firstName}'s Profile Image`;
+    userInfoContainer.style.display = 'block';
+
+    // --- Render Assigned Product ---
+    if (userData.assigned_product) {
+      const product = userData.assigned_product;
+      const assignedProductDiv = document.getElementById('assigned-product');
+      assignedProductDiv.innerHTML = `
+        <div style="border: 1px solid #ccc; padding: 15px;">
+          ${product.image ? `<img src="${product.image}" alt="${product.title}" style="max-width: 150px; margin-bottom: 10px;">` : ''}
+          <h3>${product.title}</h3>
+          <p>${product.vendor}</p>
+          <a href="${product.url}" class="button">View Product</a>
+        </div>
+      `;
+      productContainer.style.display = 'block';
+    } else {
+       productContainer.innerHTML = '<p>No product assigned.</p>';
+       productContainer.style.display = 'block';
+    }
+
+    loadingMessage.style.display = 'none';
+  });
+</script>
+
+</body>
+</html>
