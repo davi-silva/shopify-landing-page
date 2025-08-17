@@ -1,58 +1,108 @@
 {% comment %}
-  This template is used for the dynamic user landing page.
-  It expects a user_id in the URL query parameters (e.g., /pages/user-landing?user_id=123).
+  Dynamic User Landing Page
+
+  This page displays personalized content based on a user ID from the URL.
+  It's designed to work with an App Proxy for data retrieval.
+
+  **Metafield Requirements:**
+  This template requires the following Customer Metafields to be defined:
+  - `custom.first_name`: Single line text. For the user's first name.
+  - `custom.profile_image`: URL. A public URL to the user's profile image.
+  - `custom.assigned_product`: Product. A reference to the product assigned to the user.
+
+  **App Proxy Setup:**
+  - You need to create a Shopify App with an App Proxy.
+  - The proxy should be configured to point to a URL, e.g., `/apps/user-data`.
+  - Your app's backend will receive requests at this proxy URL, should fetch the
+    customer data using the Admin API based on the `user_id`, and return it as JSON.
 {% endcomment %}
 
-<div id="user-landing-page">
-  <h1>Welcome, <span id="user-first-name"></span>!</h1>
-  <img id="user-profile-image" src="" alt="User Profile Image" width="200px" height="200px" style="max-width: 200px; border-radius: 50%;">
-  <h2>Your Assigned Product:</h2>
-  <div id="assigned-product">
-    <p>Loading product details...</p>
+<div id="user-landing-page" class="page-width">
+  <div id="user-info-container" style="display: none; text-align: center; margin-bottom: 20px;">
+    <h1>Welcome, <span id="user-first-name"></span>!</h1>
+    <img id="user-profile-image" src="" alt="User Profile Image" width="200px" height="200px" style="border-radius: 50%; margin: 10px auto;">
   </div>
+
+  <div id="assigned-product-container" style="display: none;">
+    <h2>Your Assigned Product:</h2>
+    <div id="assigned-product">
+      <p>Loading product details...</p>
+    </div>
+  </div>
+
+  <div id="loading-message">
+    <p>Loading user data...</p>
+  </div>
+
+  <div id="error-message" style="display: none; color: red;"></div>
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', async function() {
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('user_id');
 
+    const loadingMessage = document.getElementById('loading-message');
+    const errorMessage = document.getElementById('error-message');
+    const userInfoContainer = document.getElementById('user-info-container');
+    const productContainer = document.getElementById('assigned-product-container');
+
     if (!userId) {
-      document.getElementById('user-landing-page').innerHTML = '<p>User ID not found in URL. Please provide a user ID (e.g., ?user_id=123).</p>';
+      loadingMessage.style.display = 'none';
+      errorMessage.textContent = 'User ID not found in URL. Please provide a user ID (e.g., ?user_id=123456789).';
+      errorMessage.style.display = 'block';
       return;
     }
 
-    // In a real scenario, this would be your Shopify App Proxy URL.
-    // Example: '/apps/my-custom-app/user-data?user_id=' + userId
-    // For this demonstration, we'll simulate the data.
-    const simulatedUserData = {
-      'user123': {
-        firstName: 'Alice',
-        profileImage: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Alice',
-        assignedProductId: 'gid://shopify/Product/8765432109876' // Example Shopify Product GID
-      },
-      'user456': {
-        firstName: 'Bob',
-        profileImage: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Bob',
-        assignedProductId: 'gid://shopify/Product/9876543210987' // Another example Product GID
+    try {
+      const proxyUrl = `/apps/user-data?user_id=${userId}&shop={{ shop.permanent_domain }}`;
+      const response = await fetch(proxyUrl);
+
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.statusText}`);
       }
-    };
 
-    const userData = simulatedUserData[userId];
+      const data = await response.json();
 
-    if (userData) {
-      document.getElementById('user-first-name').textContent = userData.firstName;
-      document.getElementById('user-profile-image').src = userData.profileImage;
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
-      // Simulate fetching product details (in a real app, you might use Storefront API or link directly)
-      const assignedProductDiv = document.getElementById('assigned-product');
-      assignedProductDiv.innerHTML = `
-        <p>Product ID: ${userData.assignedProductId}</p>
-        <p>You would typically fetch product details here using Shopify's Storefront API or link to the product page.</p>
-        <a href="/products/${userData.assignedProductId.split('/').pop()}" target="_blank">View Product (Example Link)</a>
-      `;
-    } else {
-      document.getElementById('user-landing-page').innerHTML = '<p>User data not found for the provided ID.</p>';
+      // --- Render User Info ---
+      document.getElementById('user-first-name').textContent = data.first_name || 'Valued Customer';
+      if (data.profile_image) {
+        const profileImage = document.getElementById('user-profile-image');
+        profileImage.src = data.profile_image;
+        profileImage.alt = `${data.first_name || 'User'}'s Profile Image`;
+      }
+      userInfoContainer.style.display = 'block';
+
+
+      // --- Render Assigned Product ---
+      if (data.assigned_product) {
+        const product = data.assigned_product;
+        const assignedProductDiv = document.getElementById('assigned-product');
+        assignedProductDiv.innerHTML = `
+          <div style="border: 1px solid #ccc; padding: 15px; text-align: center;">
+            ${product.image ? `<img src="${product.image}" alt="${product.title}" style="max-width: 150px; margin-bottom: 10px;">` : ''}
+            <h3>${product.title}</h3>
+            <p>${product.vendor}</p>
+            <a href="${product.url}" class="button">View Product</a>
+          </div>
+        `;
+        productContainer.style.display = 'block';
+      } else {
+         productContainer.innerHTML = '<p>No product assigned.</p>';
+         productContainer.style.display = 'block';
+      }
+
+      loadingMessage.style.display = 'none';
+
+    } catch (error) {
+      loadingMessage.style.display = 'none';
+      errorMessage.textContent = `Error: ${error.message}`;
+      errorMessage.style.display = 'block';
+      console.error('Failed to load user data:', error);
     }
   });
 </script>
