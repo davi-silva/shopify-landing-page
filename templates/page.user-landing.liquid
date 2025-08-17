@@ -55,7 +55,7 @@
     }
 
     try {
-      const proxyUrl = `/apps/user-data?user_id=${userId}&shop={{ shop.permanent_domain }}`;
+      const proxyUrl = `https://5ea643e56dc0.ngrok-free.app/apps/user-data?user_id=${userId}&shop={{ shop.permanent_domain }}`;
       const response = await fetch(proxyUrl);
 
       if (!response.ok) {
